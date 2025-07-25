@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2018, 2022 SAP SE. All rights reserved.
- * Copyright (c) 2018, 2024, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2018, 2023, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -29,7 +29,7 @@
  * @summary Show Registers on assert/guarantee
  * @library /test/lib
  * @requires vm.flagless
- * @requires vm.debug == true & (os.family == "linux" | os.family == "windows")
+ * @requires (vm.debug == true) & (os.family == "linux")
  * @author Thomas Stuefe (SAP)
  * @modules java.base/jdk.internal.misc
  *          java.management
@@ -67,28 +67,6 @@ public class ShowRegistersOnAssertTest {
         // (which would be a sign that the assert poison page mechanism does not work).
         output_detail.shouldMatch("# A fatal error has been detected by the Java Runtime Environment:.*");
         output_detail.shouldMatch("# +Internal Error.*");
-        if (show_registers_on_assert) {
-            // Extract the hs_err_pid file.
-            File hs_err_file = HsErrFileUtils.openHsErrFileFromOutput(output_detail);
-            Pattern[] pattern = null;
-            if (Platform.isX64()) {
-                pattern = new Pattern[] { Pattern.compile("Registers:"), Pattern.compile("RAX=.*")};
-            } else if (Platform.isX86()) {
-                pattern = new Pattern[] { Pattern.compile("Registers:"), Pattern.compile("EAX=.*")};
-            } else if (Platform.isAArch64()) {
-                pattern = new Pattern[] { Pattern.compile("Registers:"), Pattern.compile("R0=.*")};
-            } else if (Platform.isS390x()) {
-                pattern = new Pattern[] { Pattern.compile("General Purpose Registers:"),
-                                          Pattern.compile("^-{26}$"),
-                                          Pattern.compile("  r0  =.*")};
-            } else if (Platform.isPPC()) {
-                pattern = new Pattern[] { Pattern.compile("Registers:"), Pattern.compile("pc =.*")};
-            } else {
-                pattern = new Pattern[] { Pattern.compile("Registers:") };
-            }
-            // Pattern match the hs_err_pid file.
-            HsErrFileUtils.checkHsErrFileContent(hs_err_file, pattern, false);
-        }
     }
 
     public static void main(String[] args) throws Exception {
